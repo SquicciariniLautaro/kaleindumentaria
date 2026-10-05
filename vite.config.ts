@@ -8,7 +8,11 @@ const { version } = JSON.parse(readFileSync(new URL('./package.json', import.met
   version: string
 }
 
+// En GitHub Pages la app vive en /kaleindumentaria/; en Hostinger o en la PC, en la raíz.
+const base = process.env.BASE_PATH ?? '/'
+
 export default defineConfig({
+  base,
   define: {
     __APP_VERSION__: JSON.stringify(version),
   },
@@ -24,8 +28,8 @@ export default defineConfig({
         short_name: 'Kale',
         description: 'Viajes, stock, ventas y cuentas corrientes. Funciona sin conexión.',
         lang: 'es-AR',
-        start_url: '/',
-        scope: '/',
+        start_url: base,
+        scope: base,
         display: 'standalone',
         orientation: 'portrait',
         theme_color: '#1d1a16',
@@ -38,7 +42,6 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
-        navigateFallback: '/index.html',
       },
     }),
   ],
