@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { useRegisterSW } from 'virtual:pwa-register/react'
 import { useConexion } from '../hooks/useConexion'
 import { ir } from '../ruta'
 import { Boton, Dato, Seccion, Tarjeta } from '../ui/base'
@@ -27,10 +26,6 @@ function estaInstalada(): boolean {
 export function Mas() {
   const enLinea = useConexion()
   const [guardado, setGuardado] = useState<Guardado>('consultando')
-  const {
-    needRefresh: [hayVersionNueva],
-    updateServiceWorker,
-  } = useRegisterSW()
 
   useEffect(() => {
     if (!navigator.storage?.persisted) setGuardado('no-disponible')
@@ -46,14 +41,6 @@ export function Mas() {
 
   return (
     <Pagina titulo="Más">
-      {hayVersionNueva && (
-        <Tarjeta className="flex items-center justify-between gap-3 border-marca">
-          <span>Hay una versión nueva de la app.</span>
-          <Boton chico onClick={() => void updateServiceWorker(true)}>
-            Actualizar
-          </Boton>
-        </Tarjeta>
-      )}
       {MENU.map(([destino, nombre, detalle]) => (
         <Tarjeta key={destino} alTocar={() => ir(destino)} className="flex items-center justify-between gap-3 py-3">
           <span>

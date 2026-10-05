@@ -13,6 +13,7 @@ import { ProductoDetalle, Stock } from './pantallas/Stock'
 import { VentaDetalle, VentaNueva, Ventas } from './pantallas/Ventas'
 import { ViajeDetalle, Viajes } from './pantallas/Viajes'
 import { useRuta, type Ruta } from './ruta'
+import { Actualizacion } from './ui/Actualizacion'
 import { ProveedorAvisos } from './ui/avisos'
 import { Navegacion } from './ui/Pagina'
 
@@ -68,6 +69,7 @@ export function App() {
 
   return (
     <ProveedorAvisos>
+      <Actualizacion />
       <ProveedorDatos>
         <div className="mx-auto min-h-dvh max-w-xl">
           {/* La clave reinicia el estado de la pantalla al cambiar de registro. */}

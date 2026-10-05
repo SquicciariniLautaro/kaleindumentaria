@@ -8,6 +8,13 @@
 - **No hecho todavía**: login, nube y sincronización (Supabase), PIN, publicación en Hostinger. Los tres primeros dependen de que exista un proyecto de Supabase, que tiene que crear el usuario o su cliente.
 - Próximo paso: recibir comentarios de la prueba; después, crear el proyecto de Supabase y hacer login + sincronización; por último publicar en Hostinger.
 
+## Publicación de prueba (GitHub Pages)
+
+- Repositorio: https://github.com/SquicciariniLautaro/kaleindumentaria (público). Página: https://squicciarinilautaro.github.io/kaleindumentaria/
+- Cada `git push` a `main` compila y publica solo (`.github/workflows/pages.yml`). Pages está en modo «GitHub Actions», no «Deploy from a branch»: si se publica la rama tal cual, la página queda en blanco porque sirve el código sin compilar.
+- La carpeta base sale de la variable `BASE_PATH` (el workflow pone `/kaleindumentaria/`). Para Hostinger en la raíz del dominio no hace falta: `npm run build` y subir `dist/`.
+- Los datos de cada navegador son propios: lo cargado en localhost no aparece en la página publicada (hasta que haya sincronización).
+
 ## Cómo probarlo
 
 - `npm run dev` y abrir `http://localhost:5173` (o `npm run build` + `npm run preview` en el puerto 4173, que incluye el modo sin conexión).
