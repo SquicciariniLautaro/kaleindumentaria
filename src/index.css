@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+/* Colores tomados del logo: dorado #fbd785 y rojo #c83023, sobre neutros cálidos. */
+:root {
+  --fondo: #faf8f4;
+  --tarjeta: #ffffff;
+  --texto: #1d1a16;
+  --suave: #746e64;
+  --borde: #e9e3d8;
+  --marca: #fbd785;
+  --acento: #8a6511;
+  --primario: #1d1a16;
+  --sobre-primario: #fbd785;
+  --bien: #1f7a4d;
+  --mal: #c83023;
+  color-scheme: light;
+}
+
+/* Oscuro automático según el sistema; data-tema permite forzarlo desde Configuración. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) {
+    --fondo: #141210;
+    --tarjeta: #1f1c18;
+    --texto: #f4efe7;
+    --suave: #a69f93;
+    --borde: #35302a;
+    --marca: #fbd785;
+    --acento: #fbd785;
+    --primario: #fbd785;
+    --sobre-primario: #1d1a16;
+    --bien: #5fd39a;
+    --mal: #f0766a;
+    color-scheme: dark;
+  }
+}
+
+:root[data-tema="oscuro"] {
+  --fondo: #141210;
+  --tarjeta: #1f1c18;
+  --texto: #f4efe7;
+  --suave: #a69f93;
+  --borde: #35302a;
+  --marca: #fbd785;
+  --acento: #fbd785;
+  --primario: #fbd785;
+  --sobre-primario: #1d1a16;
+  --bien: #5fd39a;
+  --mal: #f0766a;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-fondo: var(--fondo);
+  --color-tarjeta: var(--tarjeta);
+  --color-texto: var(--texto);
+  --color-suave: var(--suave);
+  --color-borde: var(--borde);
+  --color-marca: var(--marca);
+  --color-acento: var(--acento);
+  --color-primario: var(--primario);
+  --color-sobre-primario: var(--sobre-primario);
+  --color-bien: var(--bien);
+  --color-mal: var(--mal);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  overscroll-behavior-y: none;
+}
+
+/* iOS hace zoom al enfocar campos con letra menor a 16px. */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+}

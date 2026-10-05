@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<title>Gestión Comercial</title>
+<style>
+:root{--bg:#f4f6f5;--cd:#fff;--tx:#14201c;--mu:#62706b;--ac:#0f766e;--bd:#dde3e0;--ok:#15803d;--ba:#b91c1c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0c1512;--cd:#13201b;--tx:#e6eeea;--mu:#8fa39b;--ac:#34d3be;--bd:#223630;--ok:#4ade80;--ba:#f87171}}
+:root[data-theme=dark]{--bg:#0c1512;--cd:#13201b;--tx:#e6eeea;--mu:#8fa39b;--ac:#34d3be;--bd:#223630;--ok:#4ade80;--ba:#f87171}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0 auto;max-width:640px;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:12px 12px 88px}
+h1{font-size:20px;margin:4px 0 12px}h2{font-size:15px;margin:0 0 8px}
+.c{background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:10px}
+.r{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+label{display:block;font-size:12px;color:var(--mu);margin-bottom:2px}
+input,select,button{font:inherit;font-size:16px;width:100%;min-height:44px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);padding:8px 10px}
+button{background:var(--ac);color:var(--bg);border:0;font-weight:600;cursor:pointer;margin-top:6px}
+button.s{background:transparent;color:var(--ac);border:1px solid var(--ac)}
+.k{display:grid;grid-template-columns:1fr 1fr;gap:8px}.k div{background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:10px}
+.k b{display:block;font-size:18px}.m{color:var(--mu);font-size:12px}
+.ok{color:var(--ok)}.ba{color:var(--ba)}
+.l{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--bd)}
+summary{cursor:pointer;font-weight:600;min-height:32px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--cd);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;width:auto;margin:0;background:none;color:var(--mu);border-radius:0;font-size:13px;padding:6px 2px;min-height:56px}
+nav button.on{color:var(--ac);box-shadow:inset 0 2px 0 var(--ac)}
+#net{font-size:12px;font-weight:400;float:right;padding:2px 8px;border-radius:99px;border:1px solid var(--bd);color:var(--mu)}
+.e{border-color:var(--ac)}.a{float:right;display:inline-flex}button.t{width:auto;min-height:36px;background:none;color:var(--ac);padding:4px 8px;margin:0;font-size:14px}.t.ba{color:var(--ba)}
+h1{padding-right:52px}#fab{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);right:max(12px,calc(50% - 308px));width:44px;padding:0;margin:0;display:grid;place-items:center;border-radius:50%;z-index:5}#mo{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;justify-content:center;align-items:flex-start;padding:calc(env(safe-area-inset-top,0px) + 56px) 12px 12px;z-index:9;overflow:auto}#mo.on{display:flex}.bx{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:14px;width:100%;max-width:520px}.bx p{margin:0 0 10px}
+</style></head><body>
+<div id="app"></div><div id="mo" onclick="if(event.target===this)hide()"></div><button id="fab" onclick="lupa()" aria-label="Buscar cliente por documento, teléfono o dirección"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button>
+<nav><button data-t="res" onclick="go('res')">Resumen</button><button data-t="viajes" onclick="go('viajes')">Viajes</button><button data-t="stock" onclick="go('stock')">Stock</button><button data-t="ventas" onclick="go('ventas')">Ventas</button><button data-t="clientes" onclick="go('clientes')">Clientes</button></nav>
+<script>
+const G=id=>document.getElementById(id),V=id=>G(id).value,N=id=>parseFloat(V(id))||0,$=s=>document.querySelector(s);
+const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);
+const ars=n=>(n<0?'-':'')+'$ '+Math.abs(Math.round(n)).toLocaleString('es-AR');
+const hoy=()=>new Date().toISOString().slice(0,10);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let S=null;try{S=JSON.parse(localStorage.getItem('gc1'))}catch(e){}
+S=S||{cfg:{bob:200,usd:1400,mg:30},viajes:[],clientes:[],ventas:[]};
+const save=()=>{try{localStorage.setItem('gc1',JSON.stringify(S))}catch(e){}};
+let tab='res',ed='';const opn=new Set(),MON=['ARS','BOB','USD'];
+const rate=(c,m)=>m==='ARS'?1:c[m.toLowerCase()];
+const paid=v=>v.pagos.reduce((a,p)=>a+p.m,0);
+const debt=id=>S.ventas.filter(v=>v.cli===id).reduce((a,v)=>a+v.cant*v.pu-paid(v),0);
+const qty=n=>n>=12&&n%12===0?`${n} u. (${n/12} doc)`:`${n} u.`;
+const px=n=>`${ars(n)} c/u · ${ars(n*12)} docena`;
+const vOf=id=>S.viajes.find(x=>x.id===id);
+const done=()=>{ed='';save();render()};
+
+// Formularios genéricos
+const fld=(l,h)=>`<div><label>${l}</label>${h}</div>`;
+const inp=(id,l,t='text',v='')=>fld(l,`<input id="${id}" type="${t}" ${t==='number'?'step="any" inputmode="decimal"':''} value="${esc(v)}">`);
+const sel=(id,os,v,x='')=>`<select id="${id}" ${x}>${os.map(o=>{const[a,b]=[].concat(o,o);return `<option value="${a}" ${a===v?'selected':''}>${b}</option>`}).join('')}</select>`;
+const monSel=id=>sel(id,MON);
+const F=fs=>fs.map(([n,l,t,v])=>Array.isArray(t)?fld(l,sel('e_'+n,t,v)):inp('e_'+n,l,t,v)).join('');
+const E=n=>V('e_'+n),EN=n=>parseFloat(E(n))||0;
+const editBox=(fs,sv)=>`<div class="c e">${F(fs)}<div class="r"><button onclick="${sv}">Guardar cambios</button><button class="s" onclick="ed='';render()">Cancelar</button></div></div>`;
+const acts=(k,del)=>`<span class="a"><button class="t" onclick="ed='${k}';render()">Editar</button><button class="t ba" onclick="${del}">Borrar</button></span>`;
+
+// Lógica: costo real por unidad = costo de origen × cotización + parte de los gastos del viaje
+function calc(v){
+  const g=v.gastos.reduce((a,x)=>a+x.m*rate(v.cot,x.mon),0);
+  const its=v.items.map(i=>{const un=i.un||'unidad',f=un==='docena'?12:1;return{...i,un,f,u:i.cant*f,b:i.costo/f*rate(v.cot,i.mon)}});
+  const uds=its.reduce((a,i)=>a+i.u,0),val=its.reduce((a,i)=>a+i.u*i.b,0);
+  return{g,uds,gu:uds?g/uds:0,items:its.map(i=>{
+    const share=!uds?0:v.modo==='valor'?(val?g*i.b/val:0):g/uds;
+    const vend=S.ventas.filter(x=>x.item===i.id).reduce((a,x)=>a+x.cant,0);
+    const mg=i.mg??S.cfg.mg,rep=i.costo/i.f*rate(S.cfg,i.mon)+share;
+    return{...i,viaje:v,share,hist:i.b+share,rep,mg,precio:rep*(1+mg/100),stock:i.u-vend}
+  })}
+}
+const allItems=()=>S.viajes.flatMap(v=>calc(v).items);
+
+function res(){
+  const it=allItems(),vs=S.ventas;
+  const gan=vs.reduce((a,v)=>{const i=it.find(x=>x.id===v.item);return a+(i?(v.pu-i.hist)*v.cant:0)},0);
+  const cob=vs.reduce((a,v)=>a+paid(v),0),tot=vs.reduce((a,v)=>a+v.pu*v.cant,0);
+  const stk=it.reduce((a,i)=>a+i.stock*i.hist,0);
+  return `<h1>Resumen <span id="net"></span></h1>
+  <div class="k"><div><span class="m">Ganancia real</span><b class="${gan>=0?'ok':'ba'}">${ars(gan)}</b></div>
+  <div><span class="m">Por cobrar</span><b class="${tot-cob>0.5?'ba':''}">${ars(tot-cob)}</b></div>
+  <div><span class="m">Cobrado</span><b>${ars(cob)}</b></div>
+  <div><span class="m">Stock a costo real</span><b>${ars(stk)}</b></div></div>
+  <div class="c" style="margin-top:10px"><h2>Cotizaciones y ganancia</h2>
+  <div class="r">${inp('cb','1 BOB = (ARS)','number',S.cfg.bob)}${inp('cu','1 USD = (ARS)','number',S.cfg.usd)}</div>
+  ${inp('cm','Ganancia por defecto sobre el costo (%)','number',S.cfg.mg)}
+  <div class="r"><button onclick="setCfg(0)">Guardar</button><button class="s" onclick="setCfg(1)">Aplicar % a todos</button></div>
+  <p class="m">Precio de venta = costo con la cotización de hoy + gastos de viaje + tu % de ganancia. Cada producto puede tener su propio % en la pestaña Stock. La ganancia real de lo ya vendido usa la cotización de cada viaje.</p></div>
+  <div class="r"><button class="s" onclick="demo()">Cargar ejemplo</button><button class="s" onclick="wipe()">Borrar todo</button></div>`
+}
+function viajes(){
+  return `<h1>Viajes</h1><div class="c"><h2>Nuevo viaje</h2>
+  <div class="r">${inp('vf','Fecha','date',hoy())}${inp('vd','Destino','text','Villazón')}</div>
+  ${fld('Prorrateo de gastos',sel('vm',[['unidad','Por unidad'],['valor','Por valor de compra']]))}
+  <button onclick="addV()">Crear viaje con la cotización de hoy</button></div>`
+  +S.viajes.slice().reverse().map(viaje).join('')
+}
+function viaje(v){
+  const c=calc(v),id=v.id;
+  return `<details class="c" ${opn.has(id)?'open':''} ontoggle="this.open?opn.add('${id}'):opn.delete('${id}')">
+  <summary>${esc(v.destino)} · ${v.fecha}<br><span class="m">Gastos ${ars(c.g)} · ${c.uds} u. · ${ars(c.gu)} de gasto por unidad (prom.)</span></summary>
+  ${ed==='v:'+id?editBox([['f','Fecha','date',v.fecha],['d','Destino','text',v.destino],['m','Prorrateo',[['unidad','Por unidad'],['valor','Por valor']],v.modo],['b','1 BOB = (ARS) en este viaje','number',v.cot.bob],['u','1 USD = (ARS) en este viaje','number',v.cot.usd]],`saveV('${id}')`):`<div class="a"><button class="t" onclick="ed='v:${id}';render()">Editar viaje</button><button class="t ba" onclick="delV('${id}')">Borrar viaje</button></div>`}
+  <h2 style="clear:both">1. Gastos del viaje <span class="m">(monto total de cada gasto)</span></h2>
+  ${v.gastos.map((g,n)=>ed==='g:'+id+':'+n?editBox([['c','Concepto','text',g.c],['m','Monto total','number',g.m],['o','Moneda',MON,g.mon]],`saveG('${id}',${n})`):`<div class="l"><span>${esc(g.c)}<br><span class="m">${g.m} ${g.mon}</span></span>${acts('g:'+id+':'+n,`delG('${id}',${n})`)}</div>`).join('')}
+  <div class="r" style="margin-top:8px">${inp('ga'+id,'Concepto (pasaje, peaje, viático)')}${inp('gb'+id,'Monto total','number')}</div>
+  ${fld('Moneda',monSel('gc'+id))}<button class="s" onclick="addG('${id}')">Agregar gasto</button>
+  <h2 style="margin-top:16px">2. Mercadería comprada</h2>
+  ${c.items.map(i=>ed==='i:'+id+':'+i.id?editBox([['n','Producto','text',i.nom],['u','Comprado por',[['unidad','Unidad'],['docena','Docena']],i.un],['q','Cantidad (en esa unidad)','number',i.cant],['c','Costo por esa unidad','number',i.costo],['m','Moneda',MON,i.mon],['g','Ganancia sobre costo (%)','number',i.mg]],`saveI('${id}','${i.id}')`):`<div class="l"><span><b>${esc(i.nom)}</b> · ${qty(i.u)}<br><span class="m">Origen: ${i.costo} ${i.mon} por ${i.un} = ${ars(i.b)} c/u<br>+ gasto de viaje ${ars(i.share)} c/u<br>= costo real <b>${px(i.hist)}</b></span></span>${acts('i:'+id+':'+i.id,`delI('${id}','${i.id}')`)}</div>`).join('')}
+  <div style="margin-top:8px">${inp('ia'+id,'Producto')}
+  <div class="r">${fld('Comprado por',sel('iu'+id,[['unidad','Unidad'],['docena','Docena']],'unidad',`onchange="lbl('${id}')"`))}${fld('Moneda',monSel('id'+id))}</div>
+  <div class="r"><div><label id="qa${id}">Cantidad de unidades</label><input id="ib${id}" type="number" step="any" inputmode="decimal"></div><div><label id="qc${id}">Costo por unidad</label><input id="ic${id}" type="number" step="any" inputmode="decimal"></div></div>
+  ${inp('ig'+id,'Ganancia sobre costo (%)','number',S.cfg.mg)}
+  <button class="s" onclick="addI('${id}')">Agregar producto</button></div></details>`
+}
+function stock(){
+  const it=allItems();
+  return `<h1>Stock y precios</h1>`+(it.length?it.map(i=>`<div class="c"><b>${esc(i.nom)}</b> <span class="m">${esc(i.viaje.destino)}, ${i.viaje.fecha}</span>
+  <div class="l"><span>Stock</span><b class="${i.stock>0?'':'ba'}">${qty(i.stock)}</b></div>
+  <div class="l"><span>Costo real de compra<br><span class="m">cotización del viaje + gastos de viaje</span></span><b>${px(i.hist)}</b></div>
+  <div class="l"><span>Costo hoy<br><span class="m">cotización actual + gastos de viaje</span></span><b>${px(i.rep)}</b></div>
+  <div class="r" style="margin-top:8px">${inp('mg'+i.id,'Ganancia sobre costo (%)','number',i.mg)}<button onclick="setMg('${i.id}')" style="align-self:end;margin:0">Aplicar</button></div>
+  <div class="l"><span>Precio de venta</span><b class="ok">${px(i.precio)}</b></div></div>`).join(''):'<p class="m">Cargá un viaje con productos para ver el stock.</p>')
+}
+function ventas(){
+  const ai=allItems(),it=ai.filter(i=>i.stock>0),cl=S.clientes;
+  const form=(!it.length||!cl.length)?`<p class="m">Para vender necesitás al menos un cliente y un producto con stock.</p>`:`<div class="c"><h2>Nueva venta</h2>
+  ${fld('Cliente',sel('sc',cl.map(c=>[c.id,c.nom])))}
+  ${fld('Producto',sel('sp',it.map(i=>[i.id,`${i.nom} (stock ${qty(i.stock)})`]),'','onchange="fillP()"'))}
+  <div class="r" style="margin-top:8px">${fld('Vender por',sel('sv',[['1','Unidad'],['12','Docena']],'1','onchange="fillP()"'))}${inp('sq','Cantidad','number',1)}</div>
+  ${inp('su','Precio (ARS) por la unidad elegida','number',Math.round(it[0].precio))}
+  ${inp('sg','Paga ahora (ARS; 0 = fiado)','number',0)}<button onclick="addS()">Registrar venta</button></div>`;
+  return `<h1>Ventas</h1>`+form+`<input id="fq2" placeholder="Filtrar ventas por cliente, producto o fecha" value="${esc(qv)}" oninput="qv=this.value;G('lv').innerHTML=listV()" style="margin-bottom:10px"><div id="lv">${listV()}</div>`
+}
+function listV(){
+  const ai=allItems(),cl=S.clientes;
+  return S.ventas.slice().reverse().filter(v=>{const c=cl.find(x=>x.id===v.cli),i=ai.find(x=>x.id===v.item);return mt([c&&cTxt(c),i&&i.nom,fch(v.fecha)].join(' '),qv)}).map(v=>{
+    if(ed==='s:'+v.id)return editBox([['c','Cliente',cl.map(c=>[c.id,c.nom]),v.cli],['q','Cantidad (unidades)','number',v.cant],['p','Precio por unidad (ARS)','number',Math.round(v.pu*100)/100]],`saveS('${v.id}')`);
+    const i=ai.find(x=>x.id===v.item),c=cl.find(x=>x.id===v.cli),t=v.cant*v.pu,d=t-paid(v);
+    return `<div class="c"><b>${esc(c?c.nom:'?')}</b> <span class="m">${v.fecha}${c&&ident(c)?" · "+ident(c):""}</span>${acts('s:'+v.id,`delS('${v.id}')`)}
+    <div class="l" style="clear:both"><span>${qty(v.cant)} de ${esc(i?i.nom:'?')}<br><span class="m">a ${px(v.pu)}</span></span><b>${ars(t)}</b></div>
+    <div class="l"><span>Ganancia real</span><b class="${i&&v.pu>=i.hist?'ok':'ba'}">${ars(i?(v.pu-i.hist)*v.cant:0)}</b></div>
+    <div class="l"><span>Estado</span><b class="${d>0.5?'ba':'ok'}">${d>0.5?'Debe '+ars(d):'Pagada'}</b></div></div>`
+  }).join('')||'<p class="m">No hay ventas que coincidan.</p>'
+}
+function clientes(){
+  return `<h1>Clientes</h1><div class="c"><h2>Nuevo cliente</h2>${inp('cn','Nombre')}
+  <p class="m" style="margin:0 0 6px">Documento, teléfono y dirección son opcionales. Sirven para encontrar al cliente con la lupa.</p>
+  ${inp('cd','Documento (DNI / CUIT)')}<div class="r">${inp('ct','Teléfono')}${inp('cr','Dirección y localidad')}</div>
+  <button onclick="addC()">Agregar cliente</button></div>
+  <input id="fq1" placeholder="Filtrar clientes por nombre, documento, teléfono…" value="${esc(qc)}" oninput="qc=this.value;G('lc').innerHTML=listC()" style="margin-bottom:10px">
+  <div id="lc">${listC()}</div>`
+}
+function listC(){
+  const ai=allItems();
+  return S.clientes.filter(c=>mt(cTxt(c),qc)).map(c=>{
+    const vs=S.ventas.filter(v=>v.cli===c.id),d=debt(c.id);
+    return `<details class="c" id="cl${c.id}" ${opn.has(c.id)?'open':''} ontoggle="this.open?opn.add('${c.id}'):opn.delete('${c.id}')">
+    <summary>${esc(c.nom)} <b class="${d>0.5?'ba':'ok'}" style="float:right">${d>0.5?'Debe '+ars(d):'Al día'}</b>${ident(c)?`<br><span class="m">${ident(c)}</span>`:''}</summary>
+    ${ed==='c:'+c.id?editBox([['n','Nombre','text',c.nom],['d','Documento (opcional)','text',c.doc||''],['t','Teléfono (opcional)','text',c.tel||''],['r','Dirección y localidad (opcional)','text',c.dir||'']],`saveC('${c.id}')`):`<div class="a"><button class="t" onclick="ed='c:${c.id}';render()">Editar datos</button><button class="t ba" onclick="delC('${c.id}')">Borrar cliente</button></div>`}
+    <div style="clear:both"></div>
+    ${vs.map(v=>{const i=ai.find(x=>x.id===v.item);return `<div class="l"><span>${v.fecha} · ${qty(v.cant)} de ${esc(i?i.nom:'?')}<br><span class="m">Total ${ars(v.cant*v.pu)} · pagado ${ars(paid(v))}</span>${v.pagos.map((p,n)=>`<br><span class="m">Cobro ${p.f}: ${ars(p.m)}</span> <button class="t ba" onclick="delP('${v.id}',${n})">quitar</button>`).join('')}</span></div>`}).join('')||'<p class="m">Sin compras todavía.</p>'}
+    ${d>0.5?`<div style="margin-top:8px">${inp('co'+c.id,'Cobro (ARS)','number',Math.round(d))}<button onclick="cobrar('${c.id}')">Registrar cobro (se aplica a la deuda más antigua)</button></div>`:''}
+    </details>`
+  }).join('')||'<p class="m">No hay clientes que coincidan.</p>'
+}
+
+// Acciones
+function setCfg(all){S.cfg={bob:N('cb'),usd:N('cu'),mg:N('cm')};if(all)S.viajes.forEach(v=>v.items.forEach(i=>i.mg=S.cfg.mg));save();render()}
+function setMg(id){S.viajes.flatMap(v=>v.items).find(x=>x.id===id).mg=N('mg'+id);save();render()}
+function addV(){S.viajes.push({id:uid(),fecha:V('vf'),destino:V('vd')||'Viaje',modo:V('vm'),cot:{bob:S.cfg.bob,usd:S.cfg.usd},gastos:[],items:[]});save();render()}
+function saveV(id){Object.assign(vOf(id),{fecha:E('f'),destino:E('d')||'Viaje',modo:E('m'),cot:{bob:EN('b'),usd:EN('u')}});done()}
+function addG(id){const m=N('gb'+id);if(!m)return;vOf(id).gastos.push({c:V('ga'+id)||'Gasto',m,mon:V('gc'+id)});opn.add(id);save();render()}
+function saveG(id,n){Object.assign(vOf(id).gastos[n],{c:E('c')||'Gasto',m:EN('m'),mon:E('o')});done()}
+function lbl(id){const d=V('iu'+id)==='docena';G('qa'+id).textContent=d?'Cantidad de docenas':'Cantidad de unidades';G('qc'+id).textContent=d?'Costo por docena':'Costo por unidad'}
+function addI(id){const nom=V('ia'+id).trim(),cant=N('ib'+id),costo=N('ic'+id);if(!nom||cant<=0||costo<=0)return;vOf(id).items.push({id:uid(),nom,un:V('iu'+id),cant,costo,mon:V('id'+id),mg:N('ig'+id)});opn.add(id);save();render()}
+function saveI(id,iid){const i=vOf(id).items.find(x=>x.id===iid),vend=S.ventas.filter(x=>x.item===iid).reduce((a,x)=>a+x.cant,0);
+  if(EN('q')*(E('u')==='docena'?12:1)<vend)return toast('Ya vendiste '+vend+' u. de este producto: la cantidad no puede ser menor.');
+  Object.assign(i,{nom:E('n')||i.nom,un:E('u'),cant:EN('q'),costo:EN('c'),mon:E('m'),mg:EN('g')});done()}
+function fillP(){const i=allItems().find(x=>x.id===V('sp'));if(i)G('su').value=Math.round(i.precio*N('sv'))}
+function addS(){const it=allItems().find(x=>x.id===V('sp')),f=N('sv'),q=N('sq')*f,pu=N('su')/f,g=Math.min(N('sg'),q*pu);
+  if(!it||q<=0||pu<=0)return;if(q>it.stock)return toast('Stock insuficiente: quedan '+qty(it.stock));
+  S.ventas.push({id:uid(),cli:V('sc'),item:it.id,cant:q,pu,fecha:hoy(),pagos:g>0?[{f:hoy(),m:g}]:[]});save();render()}
+function saveS(id){const v=S.ventas.find(x=>x.id===id),it=allItems().find(x=>x.id===v.item),q=EN('q');
+  if(q<=0)return;if(it&&q>it.stock+v.cant)return toast('Stock insuficiente: máximo '+(it.stock+v.cant)+' u.');
+  Object.assign(v,{cli:E('c'),cant:q,pu:EN('p')});done()}
+function cobrar(id){let m=N('co'+id);const d=debt(id);if(m<=0)return;if(m>d+0.5)return toast('El cobro supera la deuda ('+ars(d)+')');
+  S.ventas.filter(v=>v.cli===id).forEach(v=>{const a=Math.min(m,v.cant*v.pu-paid(v));if(a>0){v.pagos.push({f:hoy(),m:a});m-=a}});opn.add(id);save();render()}
+function demo(){
+  const v={id:uid(),fecha:hoy(),destino:'Villazón (ejemplo)',modo:'unidad',cot:{bob:S.cfg.bob,usd:S.cfg.usd},
+    gastos:[{c:'Pasajes',m:60000,mon:'ARS'},{c:'Peajes',m:15000,mon:'ARS'},{c:'Viáticos',m:200,mon:'BOB'}],
+    items:[{id:uid(),nom:'Zapatillas',un:'docena',cant:2,costo:1800,mon:'BOB',mg:30},{id:uid(),nom:'Parlante bluetooth',un:'unidad',cant:10,costo:12,mon:'USD',mg:40}]};
+  const c={id:uid(),nom:'Carlos (ejemplo)',doc:'30123456',tel:'388 4123456',dir:'Av. Belgrano 123, Salta'};
+  S.viajes.push(v);S.clientes.push(c);
+  S.ventas.push({id:uid(),cli:c.id,item:v.items[0].id,cant:3,pu:45000,fecha:hoy(),pagos:[{f:hoy(),m:50000}]});
+  save();render()
+}
+let qc='',qv='',pend=null;
+const nz=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\s.\-()+]/g,'');
+const mt=(x,q)=>q.split(/\s+/).filter(Boolean).every(w=>nz(x).includes(nz(w)));
+const cTxt=c=>[c.nom,c.doc,c.tel,c.dir].join(' ');
+const ident=c=>[c.doc&&'Doc. '+c.doc,c.tel&&'Tel. '+c.tel,c.dir].filter(Boolean).map(esc).join(' · ');
+const fch=f=>f+' '+f.split('-').reverse().join('/');
+const show=h=>{G('mo').innerHTML=h;G('mo').classList.add('on')},hide=()=>{G('mo').classList.remove('on');G('mo').innerHTML=''};
+const toast=m=>show(`<div class="bx"><p>${esc(m)}</p><button onclick="hide()">Entendido</button></div>`);
+const ask=(m,f)=>{pend=f;show(`<div class="bx"><p>${esc(m)}</p><div class="r"><button class="s" onclick="hide()">Cancelar</button><button style="background:var(--ba);color:#fff" onclick="yes()">Sí, borrar</button></div></div>`)};
+const yes=()=>{const f=pend;pend=null;hide();f&&f()};
+const lupa=()=>{show(`<div class="bx"><h2>Buscar cliente</h2><input id="lq" placeholder="Documento, teléfono, dirección o nombre" oninput="lres()" autocomplete="off"><div id="lr" style="margin:8px 0"><p class="m">Escribí un documento, teléfono, dirección o nombre.</p></div><button class="s" onclick="hide()">Cerrar</button></div>`);G('lq').focus()};
+const lres=()=>{const q=V('lq').trim();G('lr').innerHTML=!q?'<p class="m">Escribí un documento, teléfono, dirección o nombre.</p>':S.clientes.filter(c=>mt(cTxt(c),q)).slice(0,20).map(c=>{const d=debt(c.id);return `<div class="l" style="cursor:pointer" onclick="jump('${c.id}')"><span><b>${esc(c.nom)}</b><br><span class="m">${ident(c)||'Sin documento, teléfono ni dirección'}</span></span><b class="${d>0.5?'ba':'ok'}">${d>0.5?'Debe '+ars(d):'Al día'}</b></div>`}).join('')||'<p class="m">Sin resultados.</p>'};
+const jump=id=>{hide();tab='clientes';qc='';ed='';opn.add(id);render();const e=G('cl'+id);if(e)e.scrollIntoView({block:'center'})};
+const addC=()=>{const n=V('cn').trim();if(!n)return;S.clientes.push({id:uid(),nom:n,doc:V('cd').trim(),tel:V('ct').trim(),dir:V('cr').trim()});save();render()};
+const saveC=id=>{Object.assign(S.clientes.find(x=>x.id===id),{nom:E('n').trim()||'Cliente',doc:E('d').trim(),tel:E('t').trim(),dir:E('r').trim()});done()};
+const delV=id=>ask('¿Borrar el viaje, sus productos y las ventas de esos productos?',()=>{const v=vOf(id),ids=v.items.map(i=>i.id);S.ventas=S.ventas.filter(x=>!ids.includes(x.item));S.viajes=S.viajes.filter(x=>x!==v);save();render()});
+const delG=(id,n)=>ask('¿Borrar este gasto?',()=>{vOf(id).gastos.splice(n,1);save();render()});
+const delI=(id,iid)=>ask('¿Borrar el producto y sus ventas?',()=>{S.ventas=S.ventas.filter(x=>x.item!==iid);const v=vOf(id);v.items=v.items.filter(x=>x.id!==iid);save();render()});
+const delC=id=>ask('¿Borrar el cliente y sus ventas?',()=>{S.ventas=S.ventas.filter(x=>x.cli!==id);S.clientes=S.clientes.filter(x=>x.id!==id);save();render()});
+const delS=id=>ask('¿Borrar esta venta y sus cobros?',()=>{S.ventas=S.ventas.filter(x=>x.id!==id);save();render()});
+const delP=(id,n)=>ask('¿Quitar este cobro?',()=>{S.ventas.find(x=>x.id===id).pagos.splice(n,1);save();render()});
+const wipe=()=>ask('¿Borrar TODOS los datos (viajes, clientes y ventas)?',()=>{S={cfg:S.cfg,viajes:[],clientes:[],ventas:[]};save();render()});
+const go=t=>{tab=t;ed='';render();scrollTo(0,0)};
+const netUp=()=>{const n=$('#net');if(n)n.textContent=navigator.onLine?'● en línea':'○ sin conexión'};
+addEventListener('online',netUp);addEventListener('offline',netUp);
+function render(){
+  $('#app').innerHTML={res,viajes,stock,ventas,clientes}[tab]();
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+  netUp()
+}
+render();
+</script></body></html>
